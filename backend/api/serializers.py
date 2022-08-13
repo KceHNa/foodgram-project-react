@@ -1,10 +1,9 @@
 from rest_framework import serializers
 
-from .models import Cat
+from recipes.models import Recipe
 
 
-class CatSerializer(serializers.ModelSerializer):
+class RecipeSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Cat
-        # В прошлом уроке fields = '__all__' изменили на:
-        fields = ('name', 'color', 'birth_year')
+        model = Recipe
+        fields = ('id', 'name')
