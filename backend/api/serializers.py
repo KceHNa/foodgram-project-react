@@ -1,10 +1,8 @@
-from django.contrib.auth import get_user_model
 from djoser.serializers import UserSerializer, UserCreateSerializer
 from rest_framework import serializers
 
 from recipes.models import Recipe, Ingredient, IngredientRecipe
 
-# User = get_user_model()
 from users.models import User
 
 
@@ -14,7 +12,6 @@ class CustomUserSerializer(UserSerializer):
     class Meta:
         model = User
         fields = ('email', 'id', 'username', 'first_name', 'last_name',)
-        # extra_kwargs = {'password': {'write_only': True}}
 
 
 class CustomUserCreateSerializer(UserCreateSerializer):
@@ -23,11 +20,7 @@ class CustomUserCreateSerializer(UserCreateSerializer):
         model = User
         fields = ('email', 'id', 'username',
                   'first_name', 'last_name', 'password')
-
-
-# class PasswordSerializer(serializers.Serializer):
-#     current_password = serializers.CharField(required=True)
-#     new_password = serializers.CharField(required=True)
+        extra_kwargs = {'password': {'write_only': True}}
 
 
 class IngredientSerializer(serializers.ModelSerializer):
