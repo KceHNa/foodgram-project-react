@@ -21,9 +21,9 @@ INSTALLED_APPS = [
     'api',
     'users',
     'recipes',
-    'djoser',
     'rest_framework',
     'rest_framework.authtoken',
+    'djoser',
 ]
 
 MIDDLEWARE = [
@@ -96,7 +96,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.AllowAny',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
@@ -107,9 +107,14 @@ AUTH_USER_MODEL = 'users.User'
 
 DJOSER = {
     'HIDE_USERS': False,
+    'LOGIN_FIELD': 'email',
+    'SERIALIZERS': {
+        'user': 'api.serializers.CustomUserSerializer',
+        'current_user': 'api.serializers.CustomUserSerializer',
+        'user_create': 'api.serializers.UserCreateSerializer',
+    },
     'PERMISSIONS': {
-        'user_list': [
-            'rest_framework.permissions.AllowAny'
-        ],
+        'user_list': ('rest_framework.permissions.AllowAny',),
+        'user': ('rest_framework.permissions.IsAuthenticated',),
     },
 }
