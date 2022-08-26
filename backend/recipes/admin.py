@@ -7,7 +7,9 @@ EMPTY_VALUE = '-пусто-'
 
 class IngredientRecipeInline(admin.TabularInline):
     model = IngredientRecipe
-    list_display = ('name', 'author',)
+    # list_display = ('name',)
+    # measurement_unit = Ingredient.objects.filter()
+    fields = ('ingredient','amount',)
 
 
 @admin.register(Recipe)
