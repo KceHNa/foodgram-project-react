@@ -1,13 +1,27 @@
 from django.contrib import admin
-from django.utils.html import format_html
 
-from .models import Recipe, Ingredient, Tag
+from .models import Recipe, Ingredient, Tag, IngredientRecipe
 
 EMPTY_VALUE = '-пусто-'
 
 
-admin.site.register(Recipe)
-admin.site.register(Ingredient)
+class IngredientRecipeInline(admin.TabularInline):
+    model = IngredientRecipe
+    list_display = ('name', 'author',)
+
+
+@admin.register(Recipe)
+class RecipeAdmin(admin.ModelAdmin):
+    # list_display = ('name', 'author', 'favorites_count')
+    list_display = ('name', 'author',)
+    inlines = (IngredientRecipeInline,)
+    empty_value_display = EMPTY_VALUE
+
+
+@admin.register(Ingredient)
+class IngredientAdmin(admin.ModelAdmin):
+    list_display = ('name', 'measurement_unit',)
+    search_fields = ('name',)
 
 
 @admin.register(Tag)
