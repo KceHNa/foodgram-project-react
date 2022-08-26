@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.safestring import mark_safe
 
 from .models import Recipe, Ingredient, Tag, IngredientRecipe
 
@@ -7,9 +8,12 @@ EMPTY_VALUE = '-пусто-'
 
 class IngredientRecipeInline(admin.TabularInline):
     model = IngredientRecipe
-    # list_display = ('name',)
+    ields = ('ingredient', 'amount')
     # measurement_unit = Ingredient.objects.filter()
-    fields = ('ingredient','amount',)
+    # fields = ('ingredient', 'amount', 'measurement_unit')
+    #
+    # def measurement_unit(self, obj):
+    #     return mark_safe("""%s""" % obj.measurement_unit)
 
 
 @admin.register(Recipe)
