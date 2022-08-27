@@ -17,14 +17,6 @@ class CustomUserViewSet(UserViewSet):
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
 
-    # @action(detail=False, methods=['get'],)
-    # def subscriptions(self, request):
-    #     """Получить на кого пользователь подписан."""
-    #     user = self.request.user
-    #     if user.is_anonymous:
-    #         return Response(status=status.HTTP_401_UNAUTHORIZED)
-    #     return Follow.objects.filter(user__username=user)
-
 
 class RecipesViewSet(viewsets.ModelViewSet):
     """Рецепты."""
@@ -79,6 +71,7 @@ class FollowViewSet(APIView):
 
 
 class FollowListViewSet(ListAPIView):
+    """Список подписок."""
     serializer_class = FollowSerializer
 
     def get_queryset(self):

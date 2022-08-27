@@ -30,6 +30,10 @@ class CustomUserSerializer(UserSerializer):
         fields = ('email', 'id', 'username', 'first_name',
                   'last_name', 'is_subscribed')
 
+    @staticmethod
+    def get_recipes_count(obj):
+        return obj.recipes.count()
+
 
 class IngredientSerializer(serializers.ModelSerializer):
 
@@ -70,46 +74,20 @@ class TagSerializer(serializers.ModelSerializer):
         read_only_fields = ('__all__',)
 
 
-class FollowSerializer(CustomUserSerializer):
-    """Вывод подписок пользователя."""
-    # recipes = serializers.SerializerMethodField()
-    # recipes_count = serializers.SerializerMethodField()
-
-    class Meta:
-        model = User
-        fields = ('email', 'id', 'username', 'first_name', 'last_name',
-                  # 'is_subscribed', 'recipes', 'recipes_count')
-                  'is_subscribed',)
-
-        # def get_is_subscribed(self, obj):
-        #     user = self.context['request'].user
-        #     if user.is_anonymous:
-        #         return False
-        #     return Follow.objects.filter(
-        #         user=user, author=obj.author
-        #     ).exists()
-
-        # def get_recipes_count(self, obj):
-        #     return obj.recipes.count()
-
-        # def get_recipes(self, obj):
-        #     # limit = self.context['request'].query_params.get('recipes_limit')
-        #     # if limit is None:
-        #     #     recipes = obj.recipes.all()
-        #     # else:
-        #     #     recipes = obj.recipes.all()[:int(limit)]
-        #     recipes = obj.recipes.all()
-        #     recipes_limit = (self.context.get('request')
-        #                      .query_params.get('recipes_limit')
-        #                      )
-        #     if recipes_limit:
-        #         recipes = recipes[:int(recipes_limit)]
-        #     return MinimumRecipeSerializer(recipes, many=True).data
-
-
 class MinimumRecipeSerializer(serializers.ModelSerializer):
     """Краткое отображение рецептов."""
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
         read_only_fields = ('__all__',)
+
+
+class FollowSerializer(CustomUserSerializer):
+    """Вывод подписок пользователя."""
+    recipes = MinimumRecipeSerializer(many=True, read_only=True)
+    recipes_count = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = User
+        fields = ('email', 'id', 'username', 'first_name', 'last_name',
+                  'is_subscribed', 'recipes', 'recipes_count',)

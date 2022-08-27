@@ -8,12 +8,12 @@ EMPTY_VALUE = '-пусто-'
 
 class IngredientRecipeInline(admin.TabularInline):
     model = IngredientRecipe
-    ields = ('ingredient', 'amount')
-    # measurement_unit = Ingredient.objects.filter()
+    fields = ('ingredient', 'amount')
     # fields = ('ingredient', 'amount', 'measurement_unit')
     #
-    # def measurement_unit(self, obj):
-    #     return mark_safe("""%s""" % obj.measurement_unit)
+    # def render_measurement_unit(self, obj):
+    #     measurement_unit = Ingredient.objects.get(measurement_unit=obj)
+    #     return measurement_unit
 
 
 @admin.register(Recipe)
