@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 
-from .models import Recipe, Ingredient, Tag, IngredientRecipe
+from .models import (Recipe, Ingredient, Tag, IngredientRecipe,
+                     Favorite)
 
 EMPTY_VALUE = '-пусто-'
 
@@ -19,7 +20,7 @@ class IngredientRecipeInline(admin.TabularInline):
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
     # list_display = ('name', 'author', 'favorites_count')
-    list_display = ('name', 'author',)
+    list_display = ('id', 'name', 'author',)
     inlines = (IngredientRecipeInline,)
     empty_value_display = EMPTY_VALUE
 
@@ -34,4 +35,10 @@ class IngredientAdmin(admin.ModelAdmin):
 class TagAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'color', 'slug',)
     search_fields = ('name', 'slug',)
+    empty_value_display = EMPTY_VALUE
+
+
+@admin.register(Favorite)
+class FavoriteAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'recipe')
     empty_value_display = EMPTY_VALUE

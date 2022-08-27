@@ -35,11 +35,13 @@ class Tag(models.Model):
     color = ColorField(
         'Цвет',
         format='hexa',
-        unique=True)
+        unique=True
+    )
     slug = models.SlugField(
         'Ссылка',
         max_length=200,
-        unique=True)
+        unique=True
+    )
 
     class Meta:
         ordering = ('name', )
@@ -119,3 +121,28 @@ class IngredientRecipe(models.Model):
             models.UniqueConstraint(
                 fields=['recipe', 'ingredient'],
                 name='unique ingredient')]
+
+
+class Favorite(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='favorites',
+        verbose_name='Пользователь'
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='favorites',
+        verbose_name='Рецепт'
+    )
+
+    class Meta:
+        verbose_name = 'Избранное'
+        verbose_name_plural = 'Избранные'
+        constraints = [models.UniqueConstraint(
+            fields=['user', 'recipe'], name='unique_user_recipe'
+        )]
+
+    def __str__(self):
+        return f'{self.user.username}: {self.recipe.name}'

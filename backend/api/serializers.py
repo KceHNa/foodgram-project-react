@@ -1,7 +1,7 @@
 from djoser.serializers import UserSerializer, UserCreateSerializer
 from rest_framework import serializers
 
-from recipes.models import Recipe, Ingredient, IngredientRecipe, Tag
+from recipes.models import Recipe, Ingredient, IngredientRecipe, Tag, Favorite
 
 from users.models import User, Follow
 
@@ -59,12 +59,25 @@ class RecipeListSerializer(serializers.ModelSerializer):
         many=True,
         source='ingredient_recipe'
     )
+    is_favorited = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
         fields = ('id', 'tags', 'author', 'ingredients',
-                  'name', 'image', 'text', 'cooking_time')
+                  'name', 'image', 'text', 'cooking_time',
+                  'is_favorited',)
 
+    def get_is_favorited(self, obj):
+        user = self.context['request'].user
+        if user.is_anonymous:
+            return False
+        return Favorite.objects.filter(user=user, recipe=obj).exists()
+    # def get_is_favorited(self, queryset, name, value):
+    #     if value:
+    #         return Recipe.objects.filter(
+    #             favorites__user=self.request.user
+    #         )
+    #     return Recipe.objects.all()
 
 class TagSerializer(serializers.ModelSerializer):
 

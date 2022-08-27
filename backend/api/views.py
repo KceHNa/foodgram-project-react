@@ -7,8 +7,8 @@ from rest_framework.views import APIView
 
 from api.serializers import (RecipeListSerializer, IngredientSerializer,
                              CustomUserSerializer, TagSerializer,
-                             FollowSerializer, )
-from recipes.models import Recipe, Ingredient, Tag
+                             FollowSerializer, MinimumRecipeSerializer, )
+from recipes.models import Recipe, Ingredient, Tag, Favorite
 from users.models import User, Follow
 
 
@@ -22,6 +22,27 @@ class RecipesViewSet(viewsets.ModelViewSet):
     """Рецепты."""
     queryset = Recipe.objects.all()
     serializer_class = RecipeListSerializer
+
+    @action(detail=True, methods=['POST', 'DELETE'],)
+    def favorite(self, request, pk):
+        current_user = self.request.user
+        if current_user.is_anonymous:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        recipe = get_object_or_404(Recipe, pk=pk)
+        recipe_in_favorite = Favorite.objects.filter(user=current_user, recipe=recipe)
+        if request.method == 'POST':
+            serializer = MinimumRecipeSerializer(recipe)
+            if recipe_in_favorite.exists():
+                data = {'errors': 'Этот рецепт уже есть в избранном.'}
+                return Response(data=data, status=status.HTTP_400_BAD_REQUEST)
+            Favorite.objects.create(user=current_user, recipe=recipe)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        if request.method == 'DELETE':
+            if not recipe_in_favorite.exists():
+                data = {'errors': 'Этого рецепта нет в избранном пользователя.'}
+                return Response(data=data, status=status.HTTP_400_BAD_REQUEST)
+            recipe_in_favorite.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class IngredientsViewSet(viewsets.ModelViewSet):
