@@ -1,7 +1,8 @@
 from djoser.serializers import UserSerializer, UserCreateSerializer
 from rest_framework import serializers
 
-from recipes.models import Recipe, Ingredient, IngredientRecipe, Tag, Favorite
+from recipes.models import (Recipe, Ingredient, IngredientRecipe,
+                            Tag, Favorite)
 
 from users.models import User, Follow
 
@@ -74,18 +75,14 @@ class RecipeListSerializer(serializers.ModelSerializer):
         if user.is_anonymous:
             return False
         return Favorite.objects.filter(user=user, recipe=obj).exists()
-    # def get_is_favorited(self, queryset, name, value):
-    #     if value:
-    #         return Recipe.objects.filter(
-    #             favorites__user=self.request.user
-    #         )
-    #     return Recipe.objects.all()
 
     def get_is_in_shopping_cart(self, obj):
         user = self.context.get('request').user
         return (user.is_authenticated
-                and Recipe.objects.filter(shopping_cart__user=user, id=obj.id)
-                .exists())
+                and Recipe.objects.filter(
+                    shopping_cart__user=user,
+                    id=obj.id
+                ).exists())
 
 
 class TagSerializer(serializers.ModelSerializer):
