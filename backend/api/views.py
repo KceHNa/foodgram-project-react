@@ -16,7 +16,8 @@ from api.serializers import (RecipeListSerializer, IngredientSerializer,
                              CustomUserSerializer, TagSerializer,
                              FollowSerializer, MinimumRecipeSerializer, )
 from foodgramm.settings import BASE_DIR
-from recipes.models import Recipe, Ingredient, Tag, Favorite, IngredientRecipe, ShoppingCart
+from recipes.models import (Recipe, Ingredient, Tag, Favorite,
+                            IngredientRecipe, ShoppingCart)
 from users.models import User, Follow
 
 DOCUMENT_TITLE = 'Foodgramm, «Продуктовый помощник»'
@@ -35,64 +36,57 @@ class RecipesViewSet(viewsets.ModelViewSet):
     """Рецепты."""
     queryset = Recipe.objects.all()
     serializer_class = RecipeListSerializer
+    http_method_names = ['get', 'post', 'patch', 'delete']
 
+    # def get_serializer_class(self):
+    #     if self.request.method in ('POST', 'PATCH'):
+    #         return RecipeListSerializer
+    #     return MinimumRecipeSerializer
 
-    @action(detail=True, methods=['POST', 'DELETE'],)
-    def favorite(self, request, pk):
-        current_user = self.request.user
-        if current_user.is_anonymous:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-        recipe = get_object_or_404(Recipe, pk=pk)
-        recipe_in_favorite = Favorite.objects.filter(user=current_user, recipe=recipe)
-        if request.method == 'POST':
-            serializer = MinimumRecipeSerializer(recipe)
-            if recipe_in_favorite.exists():
-                data = {'errors': 'Этот рецепт уже есть в избранном.'}
-                return Response(data=data, status=status.HTTP_400_BAD_REQUEST)
-            Favorite.objects.create(user=current_user, recipe=recipe)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        if request.method == 'DELETE':
-            if not recipe_in_favorite.exists():
-                data = {'errors': 'Этого рецепта нет в избранном пользователя.'}
-                return Response(data=data, status=status.HTTP_400_BAD_REQUEST)
-            recipe_in_favorite.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-
-    @action(
-        detail=True,
-        methods=["post", "delete"],
-    )
-    def shopping_cart(self, request, pk=None):
-        user = self.request.user
-        recipe = get_object_or_404(Recipe, pk=pk)
-        in_shopping_cart = ShoppingCart.objects.filter(
-            user=user,
-            recipe=recipe
+    @staticmethod
+    def post_method(model, user, pk):
+        if model.objects.filter(user=user, recipe__id=pk).exists():
+            return Response(
+                {'errors': 'Рецепт уже добавлен в список'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        recipe = get_object_or_404(Recipe, id=pk)
+        model.objects.create(user=user, recipe=recipe)
+        return Response(
+            MinimumRecipeSerializer(recipe).data,
+            status=status.HTTP_201_CREATED
         )
-        if user.is_anonymous:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-        if request.method == 'GET':
-            if not in_shopping_cart:
-                shopping_cart = ShoppingCart.objects.create(
-                    user=user,
-                    recipe=recipe
-                )
-                serializer = MinimumRecipeSerializer(shopping_cart.recipe)
-                return Response(
-                    data=serializer.data,
-                    status=status.HTTP_201_CREATED
-                )
-        elif request.method == 'DELETE':
-            if not in_shopping_cart:
-                data = {'errors': 'Такой рецепта нет в списке покупок.'}
-                return Response(data=data, status=status.HTTP_400_BAD_REQUEST)
-            in_shopping_cart.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(
-        methods=['get'],
-        detail=False,
-    )
+    @staticmethod
+    def delete_method(request, pk, model):
+        obj = model.objects.filter(user=request.user, recipe__id=pk)
+        if obj.exists():
+            obj.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(
+            {'errors': 'Данного рецепта нет в списке'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    @action(detail=True, methods=['post'])
+    def favorite(self, request, pk):
+        return self.post_method(Favorite, pk=pk, user=request.user)
+
+    @favorite.mapping.delete
+    def delete_favorite(self, request, pk):
+        return self.delete_method(
+            request=request, pk=pk, model=Favorite)
+
+    @action(detail=True, methods=['post'])
+    def shopping_cart(self, request, pk):
+        return self.post_method(ShoppingCart, pk=pk, user=request.user)
+
+    @shopping_cart.mapping.delete
+    def delete_shopping_cart(self, request, pk):
+        return self.delete_method(
+            request=request, pk=pk, model=ShoppingCart)
+
+    @action(methods=['get'], detail=False,)
     def download_shopping_cart(self, request):
         """Скачать список покупок."""
         shopping_cart = IngredientRecipe.objects.filter(
