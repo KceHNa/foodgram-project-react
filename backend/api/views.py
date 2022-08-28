@@ -10,10 +10,12 @@ from reportlab.pdfgen import canvas
 from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404, ListAPIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from api.filters import RecipeFilter, IngredientSearchFilter
+from api.permissions import IsAuthorOrReadOnly
 from api.serializers import (RecipeListSerializer, IngredientSerializer,
                              CustomUserSerializer, TagSerializer,
                              FollowSerializer, MinimumRecipeSerializer, )
@@ -32,15 +34,21 @@ class CustomUserViewSet(UserViewSet):
     """Пользователи."""
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
+    permission_classes = (IsAuthenticated,)
 
 
 class RecipesViewSet(viewsets.ModelViewSet):
-    """Рецепты."""
+    """
+    Рецепты.
+    Избранные рецепты (добавить/удалить),
+    рецепыт с игридиентами в корзине (добавить/удалить)
+    """
     queryset = Recipe.objects.all()
     serializer_class = RecipeListSerializer
     http_method_names = ['get', 'post', 'patch', 'delete']
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
+    permission_classes = (IsAuthorOrReadOnly,)
 
     # def get_serializer_class(self):
     #     if self.request.method in ('POST', 'PATCH'):
@@ -90,7 +98,11 @@ class RecipesViewSet(viewsets.ModelViewSet):
         return self.delete_method(
             request=request, pk=pk, model=ShoppingCart)
 
-    @action(methods=['get'], detail=False,)
+    @action(
+        detail=False,
+        methods=['get'],
+        permission_classes=[IsAuthenticated]
+    )
     def download_shopping_cart(self, request):
         """Скачать список покупок."""
         shopping_cart = IngredientRecipe.objects.filter(
@@ -142,6 +154,8 @@ class FollowViewSet(APIView):
     """
     Создать подписку (подписаться), удалить подписку (отписаться).
     """
+    permission_classes = (IsAuthenticated,)
+
     def post(self, request, pk):
         if pk == request.user.id:
             return Response(
@@ -175,6 +189,7 @@ class FollowViewSet(APIView):
 class FollowListViewSet(ListAPIView):
     """Список подписок."""
     serializer_class = FollowSerializer
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         return User.objects.filter(following__user=self.request.user)
