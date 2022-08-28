@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.utils.safestring import mark_safe
 
 from .models import (Recipe, Ingredient, Tag, IngredientRecipe,
-                     Favorite)
+                     Favorite, ShoppingCart)
 
 EMPTY_VALUE = '-пусто-'
 
@@ -42,3 +42,6 @@ class TagAdmin(admin.ModelAdmin):
 class FavoriteAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'recipe')
     empty_value_display = EMPTY_VALUE
+
+
+admin.site.register(ShoppingCart)
