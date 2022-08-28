@@ -23,6 +23,7 @@ INSTALLED_APPS = [
     'recipes',
     'rest_framework',
     'rest_framework.authtoken',
+    'django_filters',
     'djoser',
     'colorfield',
 ]

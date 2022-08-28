@@ -2,6 +2,7 @@ from os import path
 
 from django.db.models import Sum
 from django.http import HttpResponse
+from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
@@ -12,6 +13,7 @@ from rest_framework.generics import get_object_or_404, ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from api.filters import RecipeFilter, IngredientSearchFilter
 from api.serializers import (RecipeListSerializer, IngredientSerializer,
                              CustomUserSerializer, TagSerializer,
                              FollowSerializer, MinimumRecipeSerializer, )
@@ -37,6 +39,8 @@ class RecipesViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeListSerializer
     http_method_names = ['get', 'post', 'patch', 'delete']
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = RecipeFilter
 
     # def get_serializer_class(self):
     #     if self.request.method in ('POST', 'PATCH'):
@@ -123,6 +127,8 @@ class IngredientsViewSet(viewsets.ModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     pagination_class = None
+    filter_backends = (IngredientSearchFilter,)
+    search_fields = ('^name',)
 
 
 class TagsViewSet(viewsets.ModelViewSet):
