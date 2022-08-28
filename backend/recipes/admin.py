@@ -12,16 +12,20 @@ class IngredientRecipeInline(admin.TabularInline):
     # fields = ('ingredient', 'amount', 'measurement_unit')
     #
     # def render_measurement_unit(self, obj):
-    #     measurement_unit = Ingredient.objects.get(measurement_unit=obj)
+    #     measurement_unit = Ingredient.objects.filter(measurement_unit=obj)
     #     return measurement_unit
 
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
-    # list_display = ('name', 'author', 'favorites_count')
-    list_display = ('id', 'name', 'author',)
+    list_display = ('name', 'author', 'favorites_count')
+    # list_display = ('id', 'name', 'author',)
     inlines = (IngredientRecipeInline,)
+    list_filter = ('author', 'name', 'tags')
     empty_value_display = EMPTY_VALUE
+
+    def favorites_count(self, obj):
+        return Favorite.objects.filter(recipe=obj).count()
 
 
 @admin.register(Ingredient)

@@ -15,6 +15,7 @@ class UserAdmin(admin.ModelAdmin):
 
 @admin.register(Follow)
 class FollowAdmin(admin.ModelAdmin):
-    """Представляет модель Follow в интерфейсе администратора."""
+    """Модель Follow в интерфейсе администратора."""
     list_display = ('id', 'user', 'author')
+    list_filter = ('user',)
     empty_value_display = EMPTY_VALUE
