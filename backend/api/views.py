@@ -122,12 +122,14 @@ class IngredientsViewSet(viewsets.ModelViewSet):
     """Ингридиенты."""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
+    pagination_class = None
 
 
 class TagsViewSet(viewsets.ModelViewSet):
     """Список тэгов."""
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
+    pagination_class = None
 
 
 class FollowViewSet(APIView):
