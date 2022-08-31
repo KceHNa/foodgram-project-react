@@ -20,16 +20,16 @@ from api.serializers import (
     CustomUserSerializer, FollowSerializer, IngredientSerializer,
     MinimumRecipeSerializer, RecipeListSerializer, TagSerializer
 )
-from foodgramm.settings import BASE_DIR
+from django.conf import settings
 from recipes.models import (
     Favorite, Ingredient, IngredientRecipe, Recipe, ShoppingCart,
     Tag
 )
 from users.models import Follow, User
 
-DOCUMENT_TITLE = 'Foodgramm, «Продуктовый помощник»'
+
 FONT_NAME = 'shoppingcart'
-FONT_PATH = path.join(BASE_DIR, f'../data/{FONT_NAME}.ttf')
+FONT_PATH = path.join(settings.BASE_DIR, f'../data/{FONT_NAME}.ttf')
 SHOPPING_CART_TEMPLATE = '• {} ({}) - {}'
 
 
@@ -59,7 +59,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
     #     return MinimumRecipeSerializer
 
     @staticmethod
-    def post_method(model, user, pk):
+    def __post_method__(model, user, pk):
         if model.objects.filter(user=user, recipe__id=pk).exists():
             return Response(
                 {'errors': 'Рецепт уже добавлен в список'},
@@ -73,7 +73,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
         )
 
     @staticmethod
-    def delete_method(request, pk, model):
+    def __delete_method__(request, pk, model):
         obj = model.objects.filter(user=request.user, recipe__id=pk)
         if obj.exists():
             obj.delete()
@@ -121,7 +121,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
             'attachment;''filename="shopping_cart.pdf"'
             )
         pdf_doc = canvas.Canvas(response)
-        pdf_doc.setTitle(DOCUMENT_TITLE)
+        pdf_doc.setTitle(settings.DOCUMENT_TITLE)
         pdf_doc.setFont(FONT_NAME, size=32)
         pdf_doc.drawCentredString(300, 800, 'Список покупок')
         pdf_doc.line(100, 780, 480, 780)

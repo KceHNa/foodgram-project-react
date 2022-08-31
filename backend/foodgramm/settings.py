@@ -3,7 +3,10 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+
 load_dotenv()
+
+DOCUMENT_TITLE = 'Foodgramm, «Продуктовый помощник»'
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -67,7 +70,7 @@ DATABASES = {
         'NAME': os.getenv('DB_NAME', default='postgres'),
         'USER': os.getenv('POSTGRES_USER', default='postgres'),
         'PASSWORD': os.getenv('POSTGRES_PASSWORD', default='postgres'),
-        'HOST': os.getenv('DB_HOST', default='db'),
+        'HOST': os.getenv('DB_HOST', default='localhost'),
         'PORT': os.getenv('DB_PORT', default='5432')
     }
 }
