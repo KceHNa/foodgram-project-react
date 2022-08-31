@@ -27,7 +27,6 @@ from recipes.models import (
 )
 from users.models import Follow, User
 
-
 FONT_NAME = 'shoppingcart'
 FONT_PATH = path.join(settings.BASE_DIR, f'../data/{FONT_NAME}.ttf')
 SHOPPING_CART_TEMPLATE = '• {} ({}) - {}'
@@ -38,6 +37,14 @@ class CustomUserViewSet(UserViewSet):
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
     permission_classes = (IsAuthenticated,)
+
+    # @action(detail=False, methods=['get'], )
+    # def subscriptions(self, request):
+    #     """Мои подписки списком."""
+    #     queryset = User.objects.filter(following__user=self.request.user)
+    #     # queryset = Follow.objects.filterr(user=self.request.user)
+    #     serializer = FollowSerializer(queryset, many=True, context={'request': request})
+    #     return serializer.data
 
 
 class RecipesViewSet(viewsets.ModelViewSet):
@@ -85,20 +92,20 @@ class RecipesViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def favorite(self, request, pk):
-        return self.post_method(Favorite, pk=pk, user=request.user)
+        return self.__post_method__(Favorite, pk=pk, user=request.user)
 
     @favorite.mapping.delete
     def delete_favorite(self, request, pk):
-        return self.delete_method(
+        return self.__delete_method__(
             request=request, pk=pk, model=Favorite)
 
     @action(detail=True, methods=['post'])
     def shopping_cart(self, request, pk):
-        return self.post_method(ShoppingCart, pk=pk, user=request.user)
+        return self.__post_method__(ShoppingCart, pk=pk, user=request.user)
 
     @shopping_cart.mapping.delete
     def delete_shopping_cart(self, request, pk):
-        return self.delete_method(
+        return self.__delete_method__(
             request=request, pk=pk, model=ShoppingCart)
 
     @action(
@@ -110,16 +117,16 @@ class RecipesViewSet(viewsets.ModelViewSet):
         """Скачать список покупок."""
         shopping_cart = IngredientRecipe.objects.filter(
             recipe__shopping_cart__user=request.user).values_list(
-                    'ingredient__name',
-                    'ingredient__measurement_unit'
-                ).annotate(count=Sum('amount'))
+            'ingredient__name',
+            'ingredient__measurement_unit'
+        ).annotate(count=Sum('amount'))
         pdfmetrics.registerFont(
             TTFont(FONT_NAME, FONT_PATH, 'UTF-8')
-            )
+        )
         response = HttpResponse(content_type='application/pdf')
         response['Content-Disposition'] = (
             'attachment;''filename="shopping_cart.pdf"'
-            )
+        )
         pdf_doc = canvas.Canvas(response)
         pdf_doc.setTitle(settings.DOCUMENT_TITLE)
         pdf_doc.setFont(FONT_NAME, size=32)
@@ -153,7 +160,7 @@ class TagsViewSet(viewsets.ModelViewSet):
     pagination_class = None
 
 
-class FollowViewSet(APIView):
+class FollowViewSet(viewsets.ModelViewSet):
     """
     Создать подписку (подписаться), удалить подписку (отписаться).
     """
