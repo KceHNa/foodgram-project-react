@@ -3,14 +3,10 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-
 load_dotenv()
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY WARNING: keep the secret key used in production secret!
-# SECRET_KEY = 'django-insecure-gw*1#il(!n%m)=b_k2z(2isfj=j4h1w68cpks4nn7%ucghfg7z'
 SECRET_KEY = os.getenv('SECRET_KEY', default='mytestkey')
 
 DEBUG = os.environ.get('DEBUG', default=True)
@@ -65,12 +61,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'foodgramm.wsgi.application'
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
 DATABASES = {
     'default': {
         'ENGINE': os.getenv('DB_ENGINE', default='django.db.backends.postgresql'),

@@ -9,3 +9,4 @@ pytest==7.1.2
 reportlab==3.6.11
 python-dotenv~=0.20.0
 psycopg2-binary~=2.9.3
+isort~=5.10.1

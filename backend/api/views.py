@@ -7,22 +7,25 @@ from djoser.views import UserViewSet
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
-from rest_framework import viewsets, status
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.generics import get_object_or_404, ListAPIView
+from rest_framework.generics import ListAPIView, get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from api.filters import RecipeFilter, IngredientSearchFilter
+from api.filters import IngredientSearchFilter, RecipeFilter
 from api.permissions import IsAuthorOrReadOnly
-from api.serializers import (RecipeListSerializer, IngredientSerializer,
-                             CustomUserSerializer, TagSerializer,
-                             FollowSerializer, MinimumRecipeSerializer, )
+from api.serializers import (
+    CustomUserSerializer, FollowSerializer, IngredientSerializer,
+    MinimumRecipeSerializer, RecipeListSerializer, TagSerializer
+)
 from foodgramm.settings import BASE_DIR
-from recipes.models import (Recipe, Ingredient, Tag, Favorite,
-                            IngredientRecipe, ShoppingCart)
-from users.models import User, Follow
+from recipes.models import (
+    Favorite, Ingredient, IngredientRecipe, Recipe, ShoppingCart,
+    Tag
+)
+from users.models import Follow, User
 
 DOCUMENT_TITLE = 'Foodgramm, «Продуктовый помощник»'
 FONT_NAME = 'shoppingcart'

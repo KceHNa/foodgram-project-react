@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import User, Follow
+from .models import Follow, User
 
 EMPTY_VALUE = '-пусто-'
 
