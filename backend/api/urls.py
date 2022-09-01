@@ -2,7 +2,8 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from api.views import (
-    CustomUserViewSet, FollowListViewSet, FollowViewSet,
+    # CustomUserViewSet, FollowListViewSet, FollowViewSet,
+    CustomUserViewSet, FollowViewSet,
     IngredientsViewSet, RecipesViewSet, TagsViewSet
 )
 
@@ -16,10 +17,6 @@ router_v1.register('tags', TagsViewSet, basename='tags')
 
 
 urlpatterns = [
-    path(
-        'users/subscriptions/',
-        FollowListViewSet.as_view(),
-        name='subscriptions'),
     path(
         'users/<int:pk>/subscribe/',
         FollowViewSet.as_view(),

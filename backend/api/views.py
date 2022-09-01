@@ -38,13 +38,12 @@ class CustomUserViewSet(UserViewSet):
     serializer_class = CustomUserSerializer
     permission_classes = (IsAuthenticated,)
 
-    # @action(detail=False, methods=['get'], )
-    # def subscriptions(self, request):
-    #     """Мои подписки списком."""
-    #     queryset = User.objects.filter(following__user=self.request.user)
-    #     # queryset = Follow.objects.filterr(user=self.request.user)
-    #     serializer = FollowSerializer(queryset, many=True, context={'request': request})
-    #     return serializer.data
+    @action(detail=False, methods=['get'], )
+    def subscriptions(self, request):
+        """Мои подписки списком."""
+        queryset = User.objects.filter(following__user=self.request.user)
+        serializer = FollowSerializer(queryset, many=True, context={'request': request})
+        return Response(serializer.data)
 
 
 class RecipesViewSet(viewsets.ModelViewSet):
@@ -160,7 +159,7 @@ class TagsViewSet(viewsets.ModelViewSet):
     pagination_class = None
 
 
-class FollowViewSet(viewsets.ModelViewSet):
+class FollowViewSet(APIView):
     """
     Создать подписку (подписаться), удалить подписку (отписаться).
     """
@@ -194,12 +193,3 @@ class FollowViewSet(viewsets.ModelViewSet):
             {'error': 'Подписка на данного пользователя невозможна'},
             status=status.HTTP_400_BAD_REQUEST
         )
-
-
-class FollowListViewSet(ListAPIView):
-    """Список подписок."""
-    serializer_class = FollowSerializer
-    permission_classes = (IsAuthenticated,)
-
-    def get_queryset(self):
-        return User.objects.filter(following__user=self.request.user)
