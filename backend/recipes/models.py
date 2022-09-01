@@ -13,7 +13,7 @@ class Ingredient(models.Model):
     )
     measurement_unit = models.CharField(
         'Единица измерения',
-        max_length=200
+        max_length=25
     )
 
     class Meta:
@@ -29,7 +29,7 @@ class Tag(models.Model):
     """Модель тегов для рецептов."""
     name = models.CharField(
         'Название',
-        max_length=200,
+        max_length=25,
         unique=True
     )
     color = ColorField(
@@ -39,7 +39,7 @@ class Tag(models.Model):
     )
     slug = models.SlugField(
         'Ссылка',
-        max_length=200,
+        max_length=25,
         unique=True
     )
 
@@ -121,6 +121,9 @@ class IngredientRecipe(models.Model):
             models.UniqueConstraint(
                 fields=['recipe', 'ingredient'],
                 name='unique ingredient')]
+
+    def __str__(self):
+        return f'{self.ingredient.name} - {self.ingredient.measurement_unit}'
 
 
 class Favorite(models.Model):
