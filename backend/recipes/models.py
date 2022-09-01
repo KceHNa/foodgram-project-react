@@ -115,15 +115,15 @@ class IngredientRecipe(models.Model):
     )
 
     class Meta:
-        verbose_name = 'Количество ингредиента'
-        verbose_name_plural = 'Количество ингредиентов'
+        verbose_name = 'Игридиенты в рецепте'
+        verbose_name_plural = 'Игридиенты в рецептах'
         constraints = [
             models.UniqueConstraint(
                 fields=['recipe', 'ingredient'],
                 name='unique ingredient')]
 
     def __str__(self):
-        return f'{self.ingredient.name} - {self.ingredient.measurement_unit}'
+        return f'{self.recipe.name} - {self.ingredient.name}'
 
 
 class Favorite(models.Model):

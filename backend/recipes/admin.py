@@ -51,3 +51,4 @@ class FavoriteAdmin(admin.ModelAdmin):
 
 
 admin.site.register(ShoppingCart)
+admin.site.register(IngredientRecipe)
