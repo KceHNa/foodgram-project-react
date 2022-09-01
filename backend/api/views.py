@@ -186,7 +186,7 @@ class FollowViewSet(APIView):
     def delete(self, request, pk):
         get_object_or_404(User, id=pk)
         subscription = Follow.objects.filter(user=request.user, author_id=pk)
-        if subscription:
+        if subscription.exists():
             subscription.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(
