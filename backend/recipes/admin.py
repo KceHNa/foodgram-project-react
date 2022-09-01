@@ -1,10 +1,9 @@
+from django.conf import settings
 from django.contrib import admin
 
 from .models import (
     Favorite, Ingredient, IngredientRecipe, Recipe, ShoppingCart, Tag
 )
-
-EMPTY_VALUE = '-пусто-'
 
 
 class IngredientRecipeInline(admin.TabularInline):
@@ -23,7 +22,7 @@ class RecipeAdmin(admin.ModelAdmin):
     # list_display = ('id', 'name', 'author',)
     inlines = (IngredientRecipeInline,)
     list_filter = ('author', 'name', 'tags')
-    empty_value_display = EMPTY_VALUE
+    empty_value_display = settings.EMPTY_VALUE
 
     def favorites_count(self, obj):
         return Favorite.objects.filter(recipe=obj).count()
@@ -41,13 +40,13 @@ class IngredientAdmin(admin.ModelAdmin):
 class TagAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'color', 'slug',)
     search_fields = ('name', 'slug',)
-    empty_value_display = EMPTY_VALUE
+    empty_value_display = settings.EMPTY_VALUE
 
 
 @admin.register(Favorite)
 class FavoriteAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'recipe')
-    empty_value_display = EMPTY_VALUE
+    empty_value_display = settings.EMPTY_VALUE
 
 
 admin.site.register(ShoppingCart)

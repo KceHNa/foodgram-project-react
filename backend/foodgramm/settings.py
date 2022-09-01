@@ -8,6 +8,8 @@ load_dotenv()
 
 DOCUMENT_TITLE = 'Foodgramm, «Продуктовый помощник»'
 
+EMPTY_VALUE = '-пусто-'
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('SECRET_KEY', default='mytestkey')
