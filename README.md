@@ -10,8 +10,8 @@
 #### Клонировать репозиторий и перейти в него в командной строке
 
 ```shell
-git clone <link_foodgram-project-react>.git
-cd foodgram-project-react/backend
+git clone git@github.com:KceHNa/foodgram-project-react.git
+cd foodgram-project-react/infra
 ```
 #### Прописать подключения в файл .env (описания см. в `.env.example`)
 ```
@@ -33,7 +33,7 @@ cd ../infra
 docker-compose up -d --build
 ```
 
-#### Подготовить базу данных и статику 
+#### Подготовить базу данных, статику и создать админа
 
 ```shell
 docker-compose exec backend python manage.py migrate
