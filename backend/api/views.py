@@ -29,7 +29,7 @@ from recipes.models import (
 from users.models import Follow, User
 
 FONT_NAME = 'shoppingcart'
-FONT_PATH = path.join(settings.BASE_DIR, f'../data/{FONT_NAME}.ttf')
+FONT_PATH = path.join(settings.BASE_DIR, f'data/{FONT_NAME}.ttf')
 SHOPPING_CART_TEMPLATE = '• {} ({}) - {}'
 
 
