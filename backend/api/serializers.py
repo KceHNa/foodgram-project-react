@@ -1,4 +1,5 @@
 from djoser.serializers import UserCreateSerializer, UserSerializer
+from drf_base64.fields import Base64ImageField
 from rest_framework import serializers
 
 from recipes.models import (
@@ -37,7 +38,7 @@ class CustomUserSerializer(UserSerializer):
 
 
 class IngredientSerializer(serializers.ModelSerializer):
-
+    """Отображение доступных ингридиентов."""
     class Meta:
         model = Ingredient
         fields = ('id', 'name', 'measurement_unit')
@@ -45,6 +46,7 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class IngredientRecipeListSerializer(serializers.ModelSerializer):
+    """Вывод кол-ва ингридиентов в рецепте."""
     id = serializers.IntegerField(source='ingredient.id')
     name = serializers.CharField(source='ingredient.name')
     measurement_unit = serializers.CharField(
@@ -56,7 +58,18 @@ class IngredientRecipeListSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'measurement_unit', 'amount', )
 
 
+class TagSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Tag
+        fields = ('id', 'name', 'color', 'slug')
+        read_only_fields = ('__all__',)
+
+
 class RecipeListSerializer(serializers.ModelSerializer):
+    """Отображение рецептов."""
+    tags = TagSerializer(read_only=True, many=True)
+    author = CustomUserSerializer(read_only=True)
     ingredients = IngredientRecipeListSerializer(
         many=True,
         source='ingredient_recipe'
@@ -85,12 +98,51 @@ class RecipeListSerializer(serializers.ModelSerializer):
                 ).exists())
 
 
-class TagSerializer(serializers.ModelSerializer):
+class AddIngredientSerializer(serializers.ModelSerializer):
+    """Добавление ингредиентов."""
+    id = serializers.PrimaryKeyRelatedField(
+        queryset=Ingredient.objects.all()
+    )
+    amount = serializers.IntegerField()
 
     class Meta:
-        model = Tag
-        fields = ('id', 'name', 'color', 'slug')
-        read_only_fields = ('__all__',)
+        model = IngredientRecipe
+        fields = ('id', 'amount')
+
+
+class RecipeSerializer(serializers.ModelSerializer):
+    """Создание и изменение рецептов."""
+    image = Base64ImageField()
+    ingredients = AddIngredientSerializer(many=True)
+    author = CustomUserSerializer(read_only=True)
+
+    class Meta:
+        model = Recipe
+        fields = ('id', 'tags', 'author', 'ingredients',
+                  'name', 'image', 'text', 'cooking_time')
+
+    @staticmethod
+    def create_tags(tags, recipe):
+        for tag in tags:
+            recipe.tags.add(tag)
+
+    @staticmethod
+    def create_ingredients(ingredients, recipe):
+        IngredientRecipe.objects.bulk_create([IngredientRecipe(
+            recipe=recipe,
+            ingredient=ingredient['id'],
+            amount=ingredient['amount']
+            ) for ingredient in ingredients])
+
+    def create(self, validated_data):
+        tags = validated_data.pop('tags')
+        ingredients = validated_data.pop('ingredients')
+        recipe = Recipe.objects.create(
+            author=self.context.get('request').user, **validated_data
+        )
+        self.create_tags(tags, recipe)
+        self.create_ingredients(ingredients, recipe)
+        return recipe
 
 
 class MinimumRecipeSerializer(serializers.ModelSerializer):

@@ -19,7 +19,8 @@ from api.filters import IngredientSearchFilter, RecipeFilter
 from api.permissions import IsAuthorOrReadOnly
 from api.serializers import (
     CustomUserSerializer, FollowSerializer, IngredientSerializer,
-    MinimumRecipeSerializer, RecipeListSerializer, TagSerializer
+    MinimumRecipeSerializer, RecipeListSerializer, TagSerializer,
+    RecipeSerializer,
 )
 from recipes.models import (
     Favorite, Ingredient, IngredientRecipe, Recipe, ShoppingCart,
@@ -53,16 +54,15 @@ class RecipesViewSet(viewsets.ModelViewSet):
     рецепыт с игридиентами в корзине (добавить/удалить)
     """
     queryset = Recipe.objects.all()
-    serializer_class = RecipeListSerializer
     http_method_names = ['get', 'post', 'patch', 'delete']
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
     permission_classes = (IsAuthorOrReadOnly,)
 
-    # def get_serializer_class(self):
-    #     if self.request.method in ('POST', 'PATCH'):
-    #         return RecipeListSerializer
-    #     return MinimumRecipeSerializer
+    def get_serializer_class(self):
+        if self.action in ('list', 'retrieve'):
+            return RecipeListSerializer
+        return RecipeSerializer
 
     @staticmethod
     def __post_method__(model, user, pk):
