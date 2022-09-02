@@ -43,8 +43,13 @@ class CustomUserViewSet(UserViewSet):
     def subscriptions(self, request):
         """Мои подписки списком."""
         queryset = User.objects.filter(following__user=self.request.user)
-        serializer = FollowSerializer(queryset, many=True, context={'request': request})
-        return Response(serializer.data)
+        pages = self.paginate_queryset(queryset)
+        serializer = FollowSerializer(
+            pages,
+            many=True,
+            context={'request': request}
+        )
+        return self.get_paginated_response(serializer.data)
 
 
 class RecipesViewSet(viewsets.ModelViewSet):
