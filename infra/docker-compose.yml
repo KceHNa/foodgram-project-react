@@ -12,8 +12,6 @@ services:
       - ./.env
     ports:
       - "5432:5432"
-    networks:
-      - localapp
 
   backend:
 #    image: kcehna/foodgram_backend:latest
@@ -35,8 +33,6 @@ services:
       - db
     env_file:
       - ./.env
-    networks:
-      - localapp
 
   frontend:
     build:
@@ -61,14 +57,10 @@ services:
     depends_on:
       - backend
       - frontend
-    networks:
-      - localapp
+
 
 volumes:
   database:
   data_value:
   static_value:
   media_value:
-
-networks:
-  localapp:
