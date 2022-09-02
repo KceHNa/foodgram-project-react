@@ -144,6 +144,13 @@ class RecipeSerializer(serializers.ModelSerializer):
         self.create_ingredients(ingredients, recipe)
         return recipe
 
+    def update(self, instance, validated_data):
+        instance.tags.clear()
+        IngredientRecipe.objects.filter(recipe=instance).delete()
+        self.create_tags(validated_data.pop('tags'), instance)
+        self.create_ingredients(validated_data.pop('ingredients'), instance)
+        return super().update(instance, validated_data)
+
 
 class MinimumRecipeSerializer(serializers.ModelSerializer):
     """Краткое отображение рецептов."""
