@@ -124,15 +124,36 @@ class RecipeSerializer(serializers.ModelSerializer):
         fields = ('id', 'tags', 'author', 'ingredients',
                   'name', 'image', 'text', 'cooking_time')
 
-    def validate_ingredients(self, ingredients):
-        if ingredients == []:
-            raise serializers.ValidationError(
-                'Нужно выбрать минимум 1 ингридиент!')
+    @staticmethod
+    def validate_ingredients(ingredients):
+        if not ingredients:
+            raise ValidationError(
+                'Добавьте ингридиенты!'
+            )
+        ingredients_list = []
+        for ingredient in ingredients:
+            if ingredient['id'] in ingredients_list:
+                raise ValidationError(
+                    'Ингредиенты должны быть уникальными!'
+                )
         for ingredient in ingredients:
             if int(ingredient['amount']) <= 0:
-                raise serializers.ValidationError(
-                    'Количество должно быть больше нуля!')
+                raise ValidationError(
+                    'Количество должно быть больше нуля!'
+                )
         return ingredients
+
+    @staticmethod
+    def validate_tags(tags):
+        if not tags:
+            raise ValidationError(
+                {'tags': 'Выберите тэг для рецепта!'}
+            )
+        for tag_name in tags:
+            if not Tag.objects.filter(name=tag_name).exists():
+                raise ValidationError(
+                    f'Тэга {tag_name} не существует!')
+        return tags
 
     @staticmethod
     def create_tags(tags, recipe):
