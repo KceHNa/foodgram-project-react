@@ -15,7 +15,6 @@ SECRET_KEY = os.getenv('SECRET_KEY', default='mytestkey')
 
 DEBUG = os.environ.get('DEBUG', default=True)
 
-# ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS')
 ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
