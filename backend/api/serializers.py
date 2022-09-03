@@ -4,7 +4,8 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from recipes.models import (
-    Favorite, Ingredient, IngredientRecipe, Recipe, Tag
+    Favorite, Ingredient, IngredientRecipe,
+    Recipe, Tag
 )
 from users.models import Follow, User
 

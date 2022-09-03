@@ -11,14 +11,15 @@ from rest_framework.views import APIView
 from api.filters import IngredientSearchFilter, RecipeFilter
 from api.permissions import IsAuthorOrReadOnly
 from api.serializers import (
-    CustomUserSerializer, FollowSerializer, IngredientSerializer,
-    MinimumRecipeSerializer, RecipeListSerializer, TagSerializer,
-    RecipeSerializer,
+    CustomUserSerializer, FollowSerializer,
+    IngredientSerializer, MinimumRecipeSerializer,
+    RecipeListSerializer, RecipeSerializer,
+    TagSerializer
 )
 from api.utils import create_pdf
 from recipes.models import (
-    Favorite, Ingredient, IngredientRecipe, Recipe, ShoppingCart,
-    Tag
+    Favorite, Ingredient, IngredientRecipe, Recipe,
+    ShoppingCart, Tag
 )
 from users.models import Follow, User
 

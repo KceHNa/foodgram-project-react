@@ -3,7 +3,6 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-
 load_dotenv()
 
 DOCUMENT_TITLE = 'Foodgramm, «Продуктовый помощник»'
