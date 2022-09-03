@@ -61,7 +61,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
         return RecipeSerializer
 
     @staticmethod
-    def __post_method__(model, user, pk):
+    def __post_method(model, user, pk):
         if model.objects.filter(user=user, recipe__id=pk).exists():
             return Response(
                 {'errors': 'Рецепт уже добавлен в список'},
@@ -75,7 +75,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
         )
 
     @staticmethod
-    def __delete_method__(request, pk, model):
+    def __delete_method(request, pk, model):
         obj = model.objects.filter(user=request.user, recipe__id=pk)
         if obj.exists():
             obj.delete()
@@ -87,20 +87,20 @@ class RecipesViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def favorite(self, request, pk):
-        return self.__post_method__(Favorite, pk=pk, user=request.user)
+        return self.__post_method(Favorite, pk=pk, user=request.user)
 
     @favorite.mapping.delete
     def delete_favorite(self, request, pk):
-        return self.__delete_method__(
+        return self.__delete_method(
             request=request, pk=pk, model=Favorite)
 
     @action(detail=True, methods=['post'])
     def shopping_cart(self, request, pk):
-        return self.__post_method__(ShoppingCart, pk=pk, user=request.user)
+        return self.__post_method(ShoppingCart, pk=pk, user=request.user)
 
     @shopping_cart.mapping.delete
     def delete_shopping_cart(self, request, pk):
-        return self.__delete_method__(
+        return self.__delete_method(
             request=request, pk=pk, model=ShoppingCart)
 
     @action(
