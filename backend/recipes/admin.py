@@ -2,7 +2,8 @@ from django.conf import settings
 from django.contrib import admin
 
 from .models import (
-    Favorite, Ingredient, IngredientRecipe, Recipe, ShoppingCart, Tag
+    Favorite, Ingredient, IngredientRecipe, Recipe,
+    ShoppingCart, Tag
 )
 
 
@@ -19,7 +20,6 @@ class IngredientRecipeInline(admin.TabularInline):
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
     list_display = ('name', 'author', 'favorites_count')
-    # list_display = ('id', 'name', 'author',)
     inlines = (IngredientRecipeInline,)
     list_filter = ('author', 'name', 'tags')
     empty_value_display = settings.EMPTY_VALUE
