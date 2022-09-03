@@ -1,16 +1,9 @@
-from os import path
-
-from django.conf import settings
 from django.db.models import Sum
-from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.pdfgen import canvas
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.generics import ListAPIView, get_object_or_404
+from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -22,15 +15,12 @@ from api.serializers import (
     MinimumRecipeSerializer, RecipeListSerializer, TagSerializer,
     RecipeSerializer,
 )
+from api.utils import create_pdf
 from recipes.models import (
     Favorite, Ingredient, IngredientRecipe, Recipe, ShoppingCart,
     Tag
 )
 from users.models import Follow, User
-
-FONT_NAME = 'shoppingcart'
-FONT_PATH = path.join(settings.BASE_DIR, f'data/{FONT_NAME}.ttf')
-SHOPPING_CART_TEMPLATE = '• {} ({}) - {}'
 
 
 class CustomUserViewSet(UserViewSet):
@@ -124,28 +114,8 @@ class RecipesViewSet(viewsets.ModelViewSet):
             'ingredient__name',
             'ingredient__measurement_unit'
         ).annotate(count=Sum('amount'))
-        pdfmetrics.registerFont(
-            TTFont(FONT_NAME, FONT_PATH, 'UTF-8')
-        )
-        response = HttpResponse(content_type='application/pdf')
-        response['Content-Disposition'] = (
-            'attachment;''filename="shopping_cart.pdf"'
-        )
-        pdf_doc = canvas.Canvas(response)
-        pdf_doc.setTitle(settings.DOCUMENT_TITLE)
-        pdf_doc.setFont(FONT_NAME, size=32)
-        pdf_doc.drawCentredString(300, 800, 'Список покупок')
-        pdf_doc.line(100, 780, 480, 780)
-        pdf_doc.setFont(FONT_NAME, size=16)
-        height = 750
-        for ingredient in shopping_cart:
-            pdf_doc.drawString(
-                75, height, (SHOPPING_CART_TEMPLATE.format(*ingredient))
-            )
-            height -= 25
-        pdf_doc.showPage()
-        pdf_doc.save()
-        return response
+        shopping_file = create_pdf(shopping_cart)
+        return shopping_file
 
 
 class IngredientsViewSet(viewsets.ModelViewSet):

@@ -1,6 +1,7 @@
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_base64.fields import Base64ImageField
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from recipes.models import (
     Favorite, Ingredient, IngredientRecipe, Recipe, Tag
@@ -111,7 +112,9 @@ class AddIngredientSerializer(serializers.ModelSerializer):
 
 
 class RecipeSerializer(serializers.ModelSerializer):
-    """Создание и изменение рецептов."""
+    """
+    Создание и изменение рецептов.
+    """
     image = Base64ImageField()
     ingredients = AddIngredientSerializer(many=True)
     author = CustomUserSerializer(read_only=True)
@@ -120,6 +123,16 @@ class RecipeSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = ('id', 'tags', 'author', 'ingredients',
                   'name', 'image', 'text', 'cooking_time')
+
+    def validate_ingredients(self, ingredients):
+        if ingredients == []:
+            raise serializers.ValidationError(
+                'Нужно выбрать минимум 1 ингридиент!')
+        for ingredient in ingredients:
+            if int(ingredient['amount']) <= 0:
+                raise serializers.ValidationError(
+                    'Количество должно быть больше нуля!')
+        return ingredients
 
     @staticmethod
     def create_tags(tags, recipe):
@@ -150,6 +163,24 @@ class RecipeSerializer(serializers.ModelSerializer):
         self.create_tags(validated_data.pop('tags'), instance)
         self.create_ingredients(validated_data.pop('ingredients'), instance)
         return super().update(instance, validated_data)
+
+    def to_representation(self, instance):
+        serializer = RecipeListSerializer(
+            instance,
+            context=self.context
+        )
+        return serializer.data
+    # def validate(self, data):
+    #     ingredients = data['ingredients']
+    #     ingredients_list = []
+    #     for ingredient in ingredients:
+    #         if ingredient['id'] in ingredients_list:
+    #             raise serializers.ValidationError({
+    #                 'ingredients': 'Рецепт с такими ингридиентами уже существует!'
+    #             })
+    #     tags = data['tags']
+    #     if not tags:
+    #         raise serializers.ValidationError({'tags': 'Добавьте тег!'})
 
 
 class MinimumRecipeSerializer(serializers.ModelSerializer):
