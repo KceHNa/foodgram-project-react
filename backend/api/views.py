@@ -6,7 +6,6 @@ from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from api.filters import IngredientSearchFilter, RecipeFilter
 from api.permissions import IsAuthorOrReadOnly
@@ -52,6 +51,7 @@ class CustomUserViewSet(UserViewSet):
         url_path='subscribe',
     )
     def subscribe(self, request, id=None):
+        """Подписка/отписка от автора."""
         user = request.user
         author = get_object_or_404(User, pk=id)
         data = {
@@ -96,7 +96,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
         return RecipeSerializer
 
     @staticmethod
-    def __post_method(model, user, pk):
+    def __post_method(model, pk, user):
         if model.objects.filter(user=user, recipe__id=pk).exists():
             return Response(
                 {'errors': 'Рецепт уже добавлен в список'},
@@ -110,8 +110,8 @@ class RecipesViewSet(viewsets.ModelViewSet):
         )
 
     @staticmethod
-    def __delete_method(request, pk, model):
-        obj = model.objects.filter(user=request.user, recipe__id=pk)
+    def __delete_method(model, pk, user):
+        obj = get_object_or_404(model, user=user, recipe__id=pk)
         if obj.exists():
             obj.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
@@ -126,8 +126,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
 
     @favorite.mapping.delete
     def delete_favorite(self, request, pk):
-        return self.__delete_method(
-            request=request, pk=pk, model=Favorite)
+        return self.__delete_method(Favorite, pk=pk, user=request.user)
 
     @action(detail=True, methods=['post'])
     def shopping_cart(self, request, pk):
@@ -135,8 +134,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
 
     @shopping_cart.mapping.delete
     def delete_shopping_cart(self, request, pk):
-        return self.__delete_method(
-            request=request, pk=pk, model=ShoppingCart)
+        return self.__delete_method(ShoppingCart, pk=pk, user=request.user)
 
     @action(
         detail=False,
@@ -155,7 +153,6 @@ class RecipesViewSet(viewsets.ModelViewSet):
 
 
 class IngredientsViewSet(viewsets.ModelViewSet):
-    """Ингридиенты."""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     pagination_class = None
@@ -168,39 +165,3 @@ class TagsViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     pagination_class = None
-
-
-# class FollowViewSet(APIView):
-#     """
-#     Создать подписку (подписаться), удалить подписку (отписаться).
-#     """
-#     permission_classes = (IsAuthenticated,)
-    #
-    # def post(self, request, pk):
-    #     if pk == request.user.id:
-    #         return Response(
-    #             {'error': 'Пользователь не может подписаться сам на себя!'},
-    #             status=status.HTTP_400_BAD_REQUEST
-    #         )
-    #     if Follow.objects.filter(user=request.user, author_id=pk).exists():
-    #         return Response(
-    #             {'error': 'Подписка уже существует'},
-    #             status=status.HTTP_400_BAD_REQUEST
-    #         )
-    #     author = get_object_or_404(User, pk=pk)
-    #     Follow.objects.create(user=request.user, author_id=pk)
-    #     return Response(
-    #         FollowSerializer(author, context={'request': request}).data,
-    #         status=status.HTTP_201_CREATED
-    #     )
-    #
-    # def delete(self, request, pk):
-    #     get_object_or_404(User, id=pk)
-    #     subscription = Follow.objects.filter(user=request.user, author_id=pk)
-    #     if subscription.exists():
-    #         subscription.delete()
-    #         return Response(status=status.HTTP_204_NO_CONTENT)
-    #     return Response(
-    #         {'error': 'Подписка на данного пользователя невозможна'},
-    #         status=status.HTTP_400_BAD_REQUEST
-    #     )

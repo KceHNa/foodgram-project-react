@@ -10,11 +10,7 @@ from .models import (
 class IngredientRecipeInline(admin.TabularInline):
     model = IngredientRecipe
     fields = ('ingredient', 'amount')
-    # fields = ('ingredient', 'amount', 'measurement_unit')
-    #
-    # def render_measurement_unit(self, obj):
-    #     measurement_unit = Ingredient.objects.filter(measurement_unit=obj)
-    #     return measurement_unit
+    extra = 1
 
 
 @admin.register(Recipe)
