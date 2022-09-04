@@ -14,7 +14,7 @@ from api.serializers import (
     CustomUserSerializer, FollowSerializer,
     IngredientSerializer, MinimumRecipeSerializer,
     RecipeListSerializer, RecipeSerializer,
-    TagSerializer
+    TagSerializer, FollowValidateSerializer
 )
 from api.utils import create_pdf
 from recipes.models import (
@@ -25,12 +25,16 @@ from users.models import Follow, User
 
 
 class CustomUserViewSet(UserViewSet):
-    """Пользователи."""
+    """
+    Пользователи и подписки.
+    Выводит подписки на авторов с рецептами.
+    Создать подписку (подписаться), удалить подписку (отписаться).
+    """
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
     permission_classes = (IsAuthenticated,)
 
-    @action(detail=False, methods=['get'], )
+    @action(detail=False, methods=['get'])
     def subscriptions(self, request):
         """Мои подписки списком."""
         queryset = User.objects.filter(following__user=self.request.user)
@@ -41,6 +45,37 @@ class CustomUserViewSet(UserViewSet):
             context={'request': request}
         )
         return self.get_paginated_response(serializer.data)
+
+    @action(
+        detail=True,
+        methods=['post', 'delete'],
+        url_path='subscribe',
+    )
+    def subscribe(self, request, id=None):
+        user = request.user
+        author = get_object_or_404(User, pk=id)
+        data = {
+            'user': user.id,
+            'author': id
+        }
+        serializer = FollowValidateSerializer(
+            data=data,
+            context={'request': request}
+        )
+        if request.method == 'POST':
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        subscription = get_object_or_404(
+            Follow, user=user, author=author
+        )
+        if subscription:
+            subscription.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(
+            {'error': 'Подписка на данного пользователя невозможна'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 class RecipesViewSet(viewsets.ModelViewSet):
@@ -135,37 +170,37 @@ class TagsViewSet(viewsets.ModelViewSet):
     pagination_class = None
 
 
-class FollowViewSet(APIView):
-    """
-    Создать подписку (подписаться), удалить подписку (отписаться).
-    """
-    permission_classes = (IsAuthenticated,)
-
-    def post(self, request, pk):
-        if pk == request.user.id:
-            return Response(
-                {'error': 'Пользователь не может подписаться сам на себя!'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        if Follow.objects.filter(user=request.user, author_id=pk).exists():
-            return Response(
-                {'error': 'Подписка уже существует'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        author = get_object_or_404(User, pk=pk)
-        Follow.objects.create(user=request.user, author_id=pk)
-        return Response(
-            FollowSerializer(author, context={'request': request}).data,
-            status=status.HTTP_201_CREATED
-        )
-
-    def delete(self, request, pk):
-        get_object_or_404(User, id=pk)
-        subscription = Follow.objects.filter(user=request.user, author_id=pk)
-        if subscription.exists():
-            subscription.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response(
-            {'error': 'Подписка на данного пользователя невозможна'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
+# class FollowViewSet(APIView):
+#     """
+#     Создать подписку (подписаться), удалить подписку (отписаться).
+#     """
+#     permission_classes = (IsAuthenticated,)
+    #
+    # def post(self, request, pk):
+    #     if pk == request.user.id:
+    #         return Response(
+    #             {'error': 'Пользователь не может подписаться сам на себя!'},
+    #             status=status.HTTP_400_BAD_REQUEST
+    #         )
+    #     if Follow.objects.filter(user=request.user, author_id=pk).exists():
+    #         return Response(
+    #             {'error': 'Подписка уже существует'},
+    #             status=status.HTTP_400_BAD_REQUEST
+    #         )
+    #     author = get_object_or_404(User, pk=pk)
+    #     Follow.objects.create(user=request.user, author_id=pk)
+    #     return Response(
+    #         FollowSerializer(author, context={'request': request}).data,
+    #         status=status.HTTP_201_CREATED
+    #     )
+    #
+    # def delete(self, request, pk):
+    #     get_object_or_404(User, id=pk)
+    #     subscription = Follow.objects.filter(user=request.user, author_id=pk)
+    #     if subscription.exists():
+    #         subscription.delete()
+    #         return Response(status=status.HTTP_204_NO_CONTENT)
+    #     return Response(
+    #         {'error': 'Подписка на данного пользователя невозможна'},
+    #         status=status.HTTP_400_BAD_REQUEST
+    #     )
