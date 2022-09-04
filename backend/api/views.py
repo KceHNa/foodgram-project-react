@@ -6,7 +6,6 @@ from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from api.filters import IngredientSearchFilter, RecipeFilter
 from api.permissions import IsAuthorOrReadOnly
@@ -14,7 +13,7 @@ from api.serializers import (
     CustomUserSerializer, FollowSerializer,
     IngredientSerializer, MinimumRecipeSerializer,
     RecipeListSerializer, RecipeSerializer,
-    TagSerializer
+    TagSerializer, FollowValidateSerializer
 )
 from api.utils import create_pdf
 from recipes.models import (
@@ -25,12 +24,16 @@ from users.models import Follow, User
 
 
 class CustomUserViewSet(UserViewSet):
-    """Пользователи."""
+    """
+    Пользователи и подписки.
+    Выводит подписки на авторов с рецептами.
+    Создать подписку (подписаться), удалить подписку (отписаться).
+    """
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
     permission_classes = (IsAuthenticated,)
 
-    @action(detail=False, methods=['get'], )
+    @action(detail=False, methods=['get'])
     def subscriptions(self, request):
         """Мои подписки списком."""
         queryset = User.objects.filter(following__user=self.request.user)
@@ -41,6 +44,38 @@ class CustomUserViewSet(UserViewSet):
             context={'request': request}
         )
         return self.get_paginated_response(serializer.data)
+
+    @action(
+        detail=True,
+        methods=['post', 'delete'],
+        url_path='subscribe',
+    )
+    def subscribe(self, request, id=None):
+        """Подписка/отписка от автора."""
+        user = request.user
+        author = get_object_or_404(User, pk=id)
+        data = {
+            'user': user.id,
+            'author': id
+        }
+        serializer = FollowValidateSerializer(
+            data=data,
+            context={'request': request}
+        )
+        if request.method == 'POST':
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        subscription = get_object_or_404(
+            Follow, user=user, author=author
+        )
+        if subscription:
+            subscription.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(
+            {'error': 'Подписка на данного пользователя невозможна'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 class RecipesViewSet(viewsets.ModelViewSet):
@@ -61,7 +96,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
         return RecipeSerializer
 
     @staticmethod
-    def __post_method__(model, user, pk):
+    def __post_method(model, pk, user):
         if model.objects.filter(user=user, recipe__id=pk).exists():
             return Response(
                 {'errors': 'Рецепт уже добавлен в список'},
@@ -75,8 +110,8 @@ class RecipesViewSet(viewsets.ModelViewSet):
         )
 
     @staticmethod
-    def __delete_method__(request, pk, model):
-        obj = model.objects.filter(user=request.user, recipe__id=pk)
+    def __delete_method(model, pk, user):
+        obj = get_object_or_404(model, user=user, recipe__id=pk)
         if obj.exists():
             obj.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
@@ -87,21 +122,19 @@ class RecipesViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def favorite(self, request, pk):
-        return self.__post_method__(Favorite, pk=pk, user=request.user)
+        return self.__post_method(Favorite, pk=pk, user=request.user)
 
     @favorite.mapping.delete
     def delete_favorite(self, request, pk):
-        return self.__delete_method__(
-            request=request, pk=pk, model=Favorite)
+        return self.__delete_method(Favorite, pk=pk, user=request.user)
 
     @action(detail=True, methods=['post'])
     def shopping_cart(self, request, pk):
-        return self.__post_method__(ShoppingCart, pk=pk, user=request.user)
+        return self.__post_method(ShoppingCart, pk=pk, user=request.user)
 
     @shopping_cart.mapping.delete
     def delete_shopping_cart(self, request, pk):
-        return self.__delete_method__(
-            request=request, pk=pk, model=ShoppingCart)
+        return self.__delete_method(ShoppingCart, pk=pk, user=request.user)
 
     @action(
         detail=False,
@@ -120,7 +153,6 @@ class RecipesViewSet(viewsets.ModelViewSet):
 
 
 class IngredientsViewSet(viewsets.ModelViewSet):
-    """Ингридиенты."""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     pagination_class = None
@@ -133,39 +165,3 @@ class TagsViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     pagination_class = None
-
-
-class FollowViewSet(APIView):
-    """
-    Создать подписку (подписаться), удалить подписку (отписаться).
-    """
-    permission_classes = (IsAuthenticated,)
-
-    def post(self, request, pk):
-        if pk == request.user.id:
-            return Response(
-                {'error': 'Пользователь не может подписаться сам на себя!'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        if Follow.objects.filter(user=request.user, author_id=pk).exists():
-            return Response(
-                {'error': 'Подписка уже существует'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        author = get_object_or_404(User, pk=pk)
-        Follow.objects.create(user=request.user, author_id=pk)
-        return Response(
-            FollowSerializer(author, context={'request': request}).data,
-            status=status.HTTP_201_CREATED
-        )
-
-    def delete(self, request, pk):
-        get_object_or_404(User, id=pk)
-        subscription = Follow.objects.filter(user=request.user, author_id=pk)
-        if subscription.exists():
-            subscription.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response(
-            {'error': 'Подписка на данного пользователя невозможна'},
-            status=status.HTTP_400_BAD_REQUEST
-        )

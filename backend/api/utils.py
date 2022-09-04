@@ -16,9 +16,9 @@ X1_LINE = 100
 Y1_LINE = 780
 X2_LINE = 480
 Y2_LINE = 780
-HEIGHT = 750
 INDENT = 75
 SHOPPING_CART_TEMPLATE = '• {} ({}) - {}'
+INTERVAL = 25
 
 
 def create_pdf(shopping_cart):
@@ -43,7 +43,7 @@ def create_pdf(shopping_cart):
         pdf_doc.drawString(
             INDENT, height, (SHOPPING_CART_TEMPLATE.format(*ingredient))
         )
-        height -= 25
+        height -= INTERVAL
     pdf_doc.showPage()
     pdf_doc.save()
     return response

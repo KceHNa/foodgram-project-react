@@ -1,7 +1,7 @@
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_base64.fields import Base64ImageField
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
+from rest_framework.validators import UniqueTogetherValidator
 
 from recipes.models import (
     Favorite, Ingredient, IngredientRecipe,
@@ -119,6 +119,10 @@ class RecipeSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
     ingredients = AddIngredientSerializer(many=True)
     author = CustomUserSerializer(read_only=True)
+    tags = serializers.PrimaryKeyRelatedField(
+        queryset=Tag.objects.all(),
+        many=True
+    )
 
     class Meta:
         model = Recipe
@@ -126,48 +130,51 @@ class RecipeSerializer(serializers.ModelSerializer):
                   'name', 'image', 'text', 'cooking_time')
 
     @staticmethod
-    def validate_ingredients(ingredients):
-        if not ingredients:
-            raise ValidationError(
-                'Добавьте ингридиенты!'
-            )
-        ingredients_list = []
-        for ingredient in ingredients:
-            if ingredient['id'] in ingredients_list:
-                raise ValidationError(
-                    'Ингредиенты должны быть уникальными!'
-                )
-        for ingredient in ingredients:
-            if int(ingredient['amount']) <= 0:
-                raise ValidationError(
-                    'Количество должно быть больше нуля!'
-                )
-        return ingredients
-
-    @staticmethod
     def validate_tags(tags):
         if not tags:
-            raise ValidationError(
-                {'tags': 'Выберите тэг для рецепта!'}
+            raise serializers.ValidationError(
+                'Выберите тэг для рецепта!'
             )
-        for tag_name in tags:
-            if not Tag.objects.filter(name=tag_name).exists():
-                raise ValidationError(
-                    f'Тэга {tag_name} не существует!')
+        tags_list = []
+        for tag in tags:
+            if tag in tags_list:
+                raise serializers.ValidationError(
+                    'Повторяющийся тэг'
+                )
+            tags_list.append(tag)
         return tags
+
+    @staticmethod
+    def validate_ingredients(ingredients):
+        if not ingredients:
+            raise serializers.ValidationError(
+                'Добавьте ингридиенты!'
+            )
+        ingredients_set = set()
+        for ingredient in ingredients:
+            ingredients_set.add(ingredient['id'])
+            if int(ingredient['amount']) <= 0:
+                raise serializers.ValidationError(
+                    f'{ingredient} Количество должно быть больше нуля!'
+                )
+        if len(ingredients_set) != len(ingredients):
+            raise serializers.ValidationError(
+                'Ингредиенты должны быть уникальными!'
+            )
+        return ingredients
 
     @staticmethod
     def create_tags(tags, recipe):
         for tag in tags:
             recipe.tags.add(tag)
 
-    @staticmethod
-    def create_ingredients(ingredients, recipe):
+    def create_ingredients(self, ingredients, recipe):
         IngredientRecipe.objects.bulk_create([IngredientRecipe(
             recipe=recipe,
             ingredient=ingredient['id'],
             amount=ingredient['amount']
-            ) for ingredient in ingredients])
+            ) for ingredient in ingredients]
+        )
 
     def create(self, validated_data):
         tags = validated_data.pop('tags')
@@ -192,17 +199,6 @@ class RecipeSerializer(serializers.ModelSerializer):
             context=self.context
         )
         return serializer.data
-    # def validate(self, data):
-    #     ingredients = data['ingredients']
-    #     ingredients_list = []
-    #     for ingredient in ingredients:
-    #         if ingredient['id'] in ingredients_list:
-    #             raise serializers.ValidationError({
-    #                 'ingredients': 'Рецепт с такими ингридиентами уже существует!'
-    #             })
-    #     tags = data['tags']
-    #     if not tags:
-    #         raise serializers.ValidationError({'tags': 'Добавьте тег!'})
 
 
 class MinimumRecipeSerializer(serializers.ModelSerializer):
@@ -234,3 +230,33 @@ class FollowSerializer(CustomUserSerializer):
         if recipes_limit:
             recipes = recipes[:int(recipes_limit)]
         return MinimumRecipeSerializer(recipes, many=True).data
+
+
+class FollowValidateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Follow
+        fields = ('user', 'author')
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Follow.objects.all(),
+                fields=('user', 'author'),
+                message='Вы уже подписаны на этого пользователя!'
+            )
+        ]
+
+    def validate(self, data):
+        request = self.context.get('request')
+        if not request or request.user.is_anonymous:
+            return False
+        author = data['author']
+        if request.user == author:
+            raise serializers.ValidationError(
+                {'error': 'Нельзя подписаться на себя!'}
+            )
+        return data
+
+    def to_representation(self, instance):
+        request = self.context.get('request')
+        context = {'request': request}
+        return FollowSerializer(instance.author, context=context).data
