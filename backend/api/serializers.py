@@ -2,7 +2,6 @@ from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_base64.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
-
 from recipes.models import (
     Favorite, Ingredient, IngredientRecipe,
     Recipe, Tag
@@ -173,7 +172,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             recipe=recipe,
             ingredient=ingredient['id'],
             amount=ingredient['amount']
-            ) for ingredient in ingredients]
+        ) for ingredient in ingredients]
         )
 
     def create(self, validated_data):

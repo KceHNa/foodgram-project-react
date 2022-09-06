@@ -6,7 +6,6 @@ from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-
 from api.filters import IngredientSearchFilter, RecipeFilter
 from api.permissions import IsAuthorOrReadOnly
 from api.serializers import (
@@ -148,8 +147,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
             'ingredient__name',
             'ingredient__measurement_unit'
         ).annotate(count=Sum('amount'))
-        shopping_file = create_pdf(shopping_cart)
-        return shopping_file
+        return create_pdf(shopping_cart)
 
 
 class IngredientsViewSet(viewsets.ModelViewSet):
