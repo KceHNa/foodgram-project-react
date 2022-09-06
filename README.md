@@ -41,10 +41,6 @@ server_name 127.0.0.1, <ваш_ip>;
 
 ```shell
 cd ../infra
-docker-compose up -d 
-```
-для разработчиков:
-```
 docker-compose up -d --build
 ```
 
