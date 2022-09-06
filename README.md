@@ -1,3 +1,8 @@
+![](https://img.shields.io/badge/Python-3.10-blue) 
+![](https://img.shields.io/badge/Django-3.2-green)
+![](https://img.shields.io/badge/DjangoRestFramework-3.13.1-red)
+![](https://img.shields.io/badge/Docker-3.8-yellow)
+
 # Проект Foodgram «Продуктовый помощник»
 
 ## Описание
@@ -9,12 +14,14 @@
 
 #### Клонировать репозиторий и перейти в него в командной строке
 
+Можно скопировать только папку infra для серверов.
+
 ```shell
 git clone git@github.com:KceHNa/foodgram-project-react.git
 cd foodgram-project-react/infra
 ```
 #### Прописать подключения в файл .env (описания см. в `.env.example`)
-```
+```bash
 SECRET_KEY=your_secret_key
 ALLOWED_HOSTS='*'
 DEBUG=False
@@ -25,11 +32,19 @@ POSTGRES_PASSWORD=postgres
 DB_HOST=db
 DB_PORT=5432
 ```
+#### Добавить ip сервера в `nginx.conf`
+```
+server_name 127.0.0.1, <ваш_ip>;
+```
 
 #### Запустить проект 
 
 ```shell
 cd ../infra
+docker-compose up -d 
+```
+для разработчиков:
+```
 docker-compose up -d --build
 ```
 
@@ -42,6 +57,6 @@ docker-compose exec backend python manage.py createsuperuser
 ```
 
 ## Проект доступен по следующим ссылкам:
-http://localhost/
+http://84.252.137.58/
 
 Автор бэкенда: Ксения Фурсова
