@@ -66,6 +66,7 @@ jobs:
             sudo docker-compose stop
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/foodgramm-frontend:latest
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/foodgramm-backend:latest
+            cd infra/
             touch .env
             echo DB_ENGINE=${{ secrets.DB_ENGINE }} > .env
             echo DB_NAME=${{ secrets.DB_NAME }} >> .env
@@ -74,5 +75,5 @@ jobs:
             echo DB_HOST=${{ secrets.DB_HOST }} >> .env
             echo DB_PORT=${{ secrets.DB_PORT }} >> .env
             echo SECRET_KEY=${{ secrets.SECRET_KEY }} >> .env
-            echo SECRET_KEY=${{ secrets.DEBUG }} >> .env
+            echo DEBUG=False >> .env
             sudo docker-compose up -d
