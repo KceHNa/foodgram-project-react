@@ -12,8 +12,27 @@ services:
       - ./.env
     ports:
       - "5432:5432"
-    networks:
-      - localapp
+
+  backend:
+#    image: kcehna/foodgram_backend:latest
+    container_name: backend
+    hostname: backend
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    restart: always
+    volumes:
+      - data_value:/app/data/
+      - static_value:/app/static/
+      - media_value:/app/media/
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    links:
+      - db
+    env_file:
+      - ./.env
 
   frontend:
     build:
@@ -22,8 +41,26 @@ services:
     volumes:
       - ../frontend/:/app/result_build/
 
+  nginx:
+    image: nginx:mainline-alpine
+    container_name: nginx
+    hostname: nginx
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - ../frontend/build:/usr/share/nginx/html/
+      - ../docs/:/usr/share/nginx/html/api/docs/
+      - static_value:/var/html/static/
+      - media_value:/var/html/media/
+    depends_on:
+      - backend
+      - frontend
+
+
 volumes:
   database:
-
-networks:
-  localapp:
+  data_value:
+  static_value:
+  media_value:

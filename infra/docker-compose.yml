@@ -14,12 +14,9 @@ services:
       - "5432:5432"
 
   backend:
-#    image: kcehna/foodgram_backend:latest
+    image: kcehna/foodgramm-backend:latest
     container_name: backend
     hostname: backend
-    build:
-      context: ../backend
-      dockerfile: Dockerfile
     restart: always
     volumes:
       - data_value:/app/data/
@@ -35,11 +32,12 @@ services:
       - ./.env
 
   frontend:
-    build:
-      context: ../frontend
-      dockerfile: Dockerfile
+    image: kcehna/foodgramm-frontend:latest
     volumes:
       - ../frontend/:/app/result_build/
+    depends_on:
+      - backend
+
 
   nginx:
     image: nginx:mainline-alpine
@@ -55,7 +53,6 @@ services:
       - static_value:/var/html/static/
       - media_value:/var/html/media/
     depends_on:
-      - backend
       - frontend
 
 

@@ -110,7 +110,7 @@ class RecipesViewSet(viewsets.ModelViewSet):
 
     @staticmethod
     def __delete_method(model, pk, user):
-        obj = get_object_or_404(model, user=user, recipe__id=pk)
+        obj = model.objects.filter(model, user=user, recipe__id=pk)
         if obj.exists():
             obj.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
