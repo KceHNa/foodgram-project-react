@@ -51,8 +51,20 @@ docker-compose exec backend python manage.py migrate
 docker-compose exec backend python manage.py collectstatic --no-input
 docker-compose exec backend python manage.py createsuperuser
 ```
+Базу можно наполнить несколькими способами, например:
+```bash
+sudo -u postgres psql
+```
+```sql
+\copy public.recipes_ingredient (name, measurement_unit) FROM '/<you_dir_project>/data/ingredients.csv' DELIMITER ',' CSV ENCODING 'UTF8' QUOTE '\"' ESCAPE '''';""
+```
+Или подключиться через PgAdmin - Import Data
 
 ## Проект доступен по следующим ссылкам:
 http://84.252.137.58/
+
+Login admin: `kcehna@me.com`
+Pass: `kcehna@me.comkcehna@me.com`
+http://84.252.137.58/admin
 
 Автор бэкенда: Ксения Фурсова

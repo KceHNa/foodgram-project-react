@@ -22,8 +22,6 @@ services:
       - data_value:/app/data/
       - static_value:/app/static/
       - media_value:/app/media/
-    ports:
-      - "8000:8000"
     depends_on:
       - db
     links:

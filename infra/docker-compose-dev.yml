@@ -14,7 +14,6 @@ services:
       - "5432:5432"
 
   backend:
-#    image: kcehna/foodgram_backend:latest
     container_name: backend
     hostname: backend
     build:
@@ -25,8 +24,6 @@ services:
       - data_value:/app/data/
       - static_value:/app/static/
       - media_value:/app/media/
-    ports:
-      - "8000:8000"
     depends_on:
       - db
     links:
